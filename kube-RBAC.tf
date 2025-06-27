@@ -52,7 +52,7 @@ resource "kubernetes_role_binding" "namespace-viewer" {
     name      = "developer"
     api_group = "rbac.authorization.k8s.io"
   }
-  
+
   subject {
     kind      = "User"
     name      = "arn:aws:sts::495599766789:assumed-role/external-developer/K8SSession"
