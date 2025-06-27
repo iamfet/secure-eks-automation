@@ -1,0 +1,56 @@
+name: Terraform Destroy
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_destroy:
+        description: 'Type "destroy" to confirm infrastructure destruction'
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  TF_VERSION: "1.12.0"
+  TF_IN_AUTOMATION: true
+
+jobs:
+  terraform-destroy:
+    name: Terraform Destroy
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm_destroy == 'destroy'
+
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: GitHubActions-Destroy
+          
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        run: |
+          # Initialize with remote backend
+          terraform init
+
+      - name: Terraform Destroy
+        run: |
+          terraform destroy -auto-approve \
+            -var="user_for_admin_role=${{ secrets.ADMIN_USER_ARN }}" \
+            -var="user_for_dev_role=${{ secrets.DEV_USER_ARN }}"
+            
+      - name: Clean up backend
+        run: |
+          echo "WARNING: Backend cleanup should be done manually after confirming all infrastructure is destroyed"
+          echo "To destroy backend: cd backend && terraform init && terraform destroy"
+        continue-on-error: true
