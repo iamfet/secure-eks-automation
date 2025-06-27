@@ -31,7 +31,6 @@ module "vpc" {
     "kubernetes.io/role/elb"                                = 1 # Identifies this subnet for external load balancers
   }
 
-
   private_subnet_tags = {
     "kubernetes.io/cluster/${var.project_name}-eks-cluster" = "shared"
     "kubernetes.io/role/internal_elb"                       = 1 # Identifies this subnet for internal services
